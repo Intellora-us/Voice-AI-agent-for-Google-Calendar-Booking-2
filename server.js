@@ -31,7 +31,6 @@ app.post('/webhook/retell-calendar', async (req, res) => {
   console.log('Full request body:', JSON.stringify(req.body, null, 2));
   
   try {
-    // Handle different payload formats from Retell
     let args;
     if (req.body.arguments) {
       args = req.body.arguments;
@@ -58,10 +57,15 @@ app.post('/webhook/retell-calendar', async (req, res) => {
     const accessToken = await getAccessToken();
     console.log('Got access token');
 
-    const startDateTime = `${appointment_date}T${appointment_time}:00`;
-    const endDateTime = new Date(
-      new Date(startDateTime).getTime() + duration_minutes * 60000
-    ).toISOString();
+    // Fixed date/time handling
+    const [hours, minutes] = appointment_time.split(':');
+    const startDate = new Date(`${appointment_date}T${appointment_time}:00`);
+    const endDate = new Date(startDate.getTime() + duration_minutes * 60000);
+    
+    const startDateTime = `${appointment_date}T${hours}:${minutes}:00`;
+    const endHours = String(endDate.getHours()).padStart(2, '0');
+    const endMinutes = String(endDate.getMinutes()).padStart(2, '0');
+    const endDateTime = `${appointment_date}T${endHours}:${endMinutes}:00`;
 
     console.log('Start time:', startDateTime);
     console.log('End time:', endDateTime);
@@ -137,4 +141,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Webhook server running on port ${PORT}`);
 });
-
